@@ -17,15 +17,18 @@ import { loadServerDefaults } from './common/setup';
 import { getLSClientTraceLevel } from './common/utilities';
 import { createOutputChannel, onDidChangeConfiguration, registerCommand } from './common/vscodeapi';
 
+// New command which is used to run external Python script
+import * as cp from 'child_process';
+// Used to join paths (like script path)
+import * as path from 'path';
+
 let lsClient: LanguageClient | undefined;
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-    // This is required to get server name and module. This should be
-    // the first thing that we do in this extension.
     const serverInfo = loadServerDefaults();
     const serverName = serverInfo.name;
     const serverId = serverInfo.module;
 
-    // Setup logging
     const outputChannel = createOutputChannel(serverName);
     context.subscriptions.push(outputChannel, registerLogger(outputChannel));
 
@@ -43,7 +46,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
     );
 
-    // Log Server information
     traceLog(`Name: ${serverInfo.name}`);
     traceLog(`Module: ${serverInfo.module}`);
     traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
@@ -85,6 +87,75 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         registerCommand(`${serverId}.restart`, async () => {
             await runServer();
         }),
+
+        //  Command added to scan Python functions
+        registerCommand('functionAnalyzer.scanFunctions', async () => {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders || workspaceFolders.length === 0) {
+                vscode.window.showErrorMessage('Please open a folder to analyze.');
+                return;
+            }
+
+            const folderPath = workspaceFolders[0].uri.fsPath;
+            const scriptPath = path.join(context.extensionPath, 'python', 'scan_functions.py'); // Python script location
+
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: 'Scanning Python functions...',
+                    cancellable: false,
+                },
+                async () => {
+                    return new Promise<void>((resolve, reject) => {
+                        // Get interpreter from VS Code settings or fallback to 'python'
+                        const pythonPath =
+                            vscode.workspace.getConfiguration('python').get<string>('defaultInterpreterPath') ||
+                            'python';
+
+                        // command added to run the script: python scan_functions.py <folderPath>
+                        const process = cp.spawn(pythonPath, [scriptPath, folderPath]);
+
+                        let output = '';
+                        let errorOutput = '';
+
+                        process.stdout.on('data', (data) => {
+                            output += data.toString();
+                        });
+
+                        process.stderr.on('data', (data) => {
+                            errorOutput += data.toString();
+                        });
+
+                        process.on('close', (code) => {
+                            if (code !== 0 || errorOutput) {
+                                vscode.window.showErrorMessage(
+                                    `Error: ${errorOutput || `Process exited with code ${code}`}`,
+                                );
+                                return reject();
+                            }
+
+                            try {
+                                const result = JSON.parse(output); // To parse output from Python script
+
+                                //  Show results in a Webview panel
+                                const panel = vscode.window.createWebviewPanel(
+                                    'functionAnalyzerResults',
+                                    'Function Analysis Results',
+                                    vscode.ViewColumn.One,
+                                    {},
+                                );
+
+                                panel.webview.html = getWebviewContent(result); // Generate HTML
+                                resolve();
+                            } catch (e: any) {
+                                vscode.window.showErrorMessage(`Failed to parse output: ${e.message}`);
+                                reject();
+                            }
+                        });
+                    });
+                },
+            );
+        }),
     );
 
     setImmediate(async () => {
@@ -97,6 +168,54 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             await runServer();
         }
     });
+}
+
+// Generate HTML from function count results in a clean way
+function getWebviewContent(data: Record<string, number>): string {
+    const folders: { [folder: string]: { [filename: string]: number } } = {};
+
+    for (const filePath in data) {
+        const parts = filePath.split(/[\\/]/);
+        const fileName = parts.pop()!;
+        const folder = parts.join('/') || 'root';
+
+        if (!folders[folder]) {
+            folders[folder] = {};
+        }
+
+        folders[folder][fileName] = data[filePath];
+    }
+
+    let html = '<h2>Function Count Analysis</h2><ul>';
+
+    for (const folder in folders) {
+        html += `<li><strong>${folder}/</strong><ul>`;
+        for (const file in folders[folder]) {
+            const count = folders[folder][file];
+            html += `<li>${file}: ${count} function${count !== 1 ? 's' : ''}</li>`;
+        }
+        html += '</ul></li>';
+    }
+
+    html += '</ul>';
+
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Function Count</title>
+        <style>
+            body { font-family: sans-serif; padding: 1em; }
+            ul { list-style: none; padding-left: 1em; }
+            li::before { content: "└─ "; color: #888; }
+        </style>
+    </head>
+    <body>
+        ${html}
+    </body>
+    </html>
+    `;
 }
 
 export async function deactivate(): Promise<void> {

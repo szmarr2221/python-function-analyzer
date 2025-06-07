@@ -1,22 +1,22 @@
 {
-    "name": "<pytool-module>",
-    "displayName": "<pytool-display-name>",
-    "description": "Linting support for python files using `<pytool-module>`.",
+    "name": "function-analyzer",
+    "displayName": "Function Analyzer",
+    "description": "Analyzes Python functions in your workspace",
     "version": "2022.0.0-dev",
     "preview": true,
     "serverInfo": {
-        "name": "<pytool-display-name>",
-        "module": "<pytool-module>"
+        "name": "Function Analyzer",
+        "module": "function-analyzer"
     },
-    "publisher": "<my-publisher>",
+    "publisher": "szmarr2221",
     "license": "MIT",
-    "homepage": "https://github.com/<my-github>/<my-extension-project>",
+    "homepage": "https://github.com/szmarr2221/function-analyzer",
     "repository": {
         "type": "git",
-        "url": "https://github.com/<my-github>/<my-extension-project>.git"
+        "url": "https://github.com/szmarr2221/function-analyzer.git"
     },
     "bugs": {
-        "url": "https://github.com/<my-github>/<my-extension-project>/issues"
+        "url": "https://github.com/szmarr2221/function-analyzer/issues"
     },
     "galleryBanner": {
         "color": "#1e415e",
@@ -24,7 +24,7 @@
     },
     "keywords": [
         "python",
-        "<pytool-module>"
+        "function-analyzer"
     ],
     "engines": {
         "vscode": "^1.78.0"
@@ -40,12 +40,13 @@
     "capabilities": {
         "virtualWorkspaces": {
             "supported": false,
-            "description": "Virtual Workspaces are not supported with <pytool-display-name>."
+            "description": "Virtual Workspaces are not supported with Function Analyzer."
         }
     },
     "activationEvents": [
         "onLanguage:python",
-        "workspaceContains:*.py"
+        "workspaceContains:*.py",
+        "onCommand:functionAnalyzer.scanFunctions"
     ],
     "main": "./dist/extension.js",
     "scripts": {
@@ -59,12 +60,12 @@
         "lint": "eslint src --ext ts",
         "format-check": "prettier --check 'src/**/*.ts' 'build/**/*.yml' '.github/**/*.yml'",
         "test": "node ./out/test/runTest.js",
-        "vsce-package": "vsce package -o <pytool-module>.vsix"
+        "vsce-package": "vsce package -o function-analyzer.vsix"
     },
     "contributes": {
         "configuration": {
             "properties": {
-                "<pytool-module>.args": {
+                "function-analyzer.args": {
                     "default": [],
                     "description": "Arguments passed in. Each argument is a separate item in the array.",
                     "items": {
@@ -73,30 +74,30 @@
                     "scope": "resource",
                     "type": "array"
                 },
-                "<pytool-module>.path": {
+                "function-analyzer.path": {
                     "default": [],
-                    "description": "When set to a path to <pytool-module> binary, extension will use that. NOTE: Using this option may slowdown server response time.",
+                    "description": "When set to a path to function-analyzer binary, extension will use that. NOTE: Using this option may slowdown server response time.",
                     "scope": "resource",
                     "items": {
                         "type": "string"
                     },
                     "type": "array"
                 },
-                "<pytool-module>.importStrategy": {
+                "function-analyzer.importStrategy": {
                     "default": "useBundled",
-                    "description": "Defines where `<pytool-module>` is imported from. This setting may be ignored if `<pytool-module>.path` is set.",
+                    "description": "Defines where `function-analyzer` is imported from. This setting may be ignored if `function-analyzer.path` is set.",
                     "enum": [
                         "useBundled",
                         "fromEnvironment"
                     ],
                     "enumDescriptions": [
-                        "Always use the bundled version of `<pytool-module>`.",
-                        "Use `<pytool-module>` from environment, fallback to bundled version only if `<pytool-module>` not available in the environment."
+                        "Always use the bundled version of `function-analyzer`.",
+                        "Use `function-analyzer` from environment, fallback to bundled version only if `function-analyzer` not available in the environment."
                     ],
                     "scope": "window",
                     "type": "string"
                 },
-                "<pytool-module>.interpreter": {
+                "function-analyzer.interpreter": {
                     "default": [],
                     "description": "When set to a path to python executable, extension will use that to launch the server and any subprocess.",
                     "scope": "resource",
@@ -105,7 +106,7 @@
                     },
                     "type": "array"
                 },
-                "<pytool-module>.showNotifications": {
+                "function-analyzer.showNotifications": {
                     "default": "off",
                     "description": "Controls when notifications are shown by this extension.",
                     "enum": [
@@ -127,22 +128,20 @@
         },
         "commands": [
             {
-                "title": "Restart Server",
-                "category": "<pytool-display-name>",
-                "command": "<pytool-module>.restart"
+                "title": "Scan Python Functions",
+                "command": "functionAnalyzer.scanFunctions"
             }
         ]
     },
     "dependencies": {
         "@vscode/python-extension": "^1.0.5",
-        "fs-extra": "^11.2.0",
-        "vscode-languageclient": "^8.1.0"
+        "fs-extra": "^11.2.0"
     },
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",
-        "@types/vscode": "1.78.0",
         "@types/glob": "^8.1.0",
         "@types/node": "20.x",
+        "@types/vscode": "^1.100.0",
         "@typescript-eslint/eslint-plugin": "^6.17.0",
         "@typescript-eslint/parser": "^6.17.0",
         "@vscode/test-electron": "^2.3.8",
@@ -150,8 +149,9 @@
         "eslint": "^8.56.0",
         "glob": "^10.3.10",
         "prettier": "^3.1.1",
-        "typescript": "^5.3.3",
         "ts-loader": "^9.5.1",
+        "typescript": "^5.3.3",
+        "vscode-languageclient": "^9.0.1",
         "webpack": "^5.89.0",
         "webpack-cli": "^5.1.4"
     }
