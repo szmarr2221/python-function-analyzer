@@ -17,7 +17,7 @@ The **Function Analyzer** is a Visual Studio Code extension that recursively sca
 - Node.js >= 18.17.0
 - `npm` >= 8.19.0
 
-## 🚀 Getting Started
+## 🔧 Build and Run
 
 1. Clone or download this repository:
     git clone https://github.com/your-username/function-analyzer-vscode.git
@@ -32,9 +32,13 @@ The **Function Analyzer** is a Visual Studio Code extension that recursively sca
     python -m venv .venv
     source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
 
-5. No additional Python dependencies are needed for this extension.
+5. To just compile TypeScript manually: (npm run compile)
 
 6. Press `F5` in VS Code to launch the extension in a new Extension Development Host window.
+
+7. Open the file you want to run the extension on
+
+8. Press (Crtrl+Shift+P) and type "Scan Python Functions".
 
 ## 🧪 How It Works
 
@@ -43,15 +47,6 @@ The **Function Analyzer** is a Visual Studio Code extension that recursively sca
 - `sys`: for receiving command-line arguments
 - The results are collected in a dictionary and returned to the VS Code extension.
 - The output is shown in a styled WebView panel inside VS Code.
-
-## 🔧 Build and Run
-
-Use the VS Code run configuration `Debug Extension` to:
-- Compile the TypeScript
-- Launch a development version of the extension
-
-To just compile TypeScript manually:
-npm run compile
 
 ## 📤 Publishing
 To publish your extension:
