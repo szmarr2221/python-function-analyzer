@@ -4,8 +4,14 @@
 #
 #    pip-compile requirements.in
 #
+attrs==25.3.0
+    # via
+    #   cattrs
+    #   lsprotocol
 build==1.2.2.post1
     # via pip-tools
+cattrs==25.1.1
+    # via lsprotocol
 click==8.2.1
     # via
     #   pip-tools
@@ -14,6 +20,8 @@ colorama==0.4.6
     # via
     #   build
     #   click
+lsprotocol==2023.0.0
+    # via pygls
 markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
@@ -21,6 +29,10 @@ mdurl==0.1.2
 packaging==25.0
     # via build
 pip-tools==7.4.1
+    # via -r requirements.in
+pydantic==1.10.13
+    # via -r requirements.in
+pygls==1.0.1
     # via -r requirements.in
 pygments==2.19.1
     # via rich
@@ -34,10 +46,15 @@ rich==13.7.1
     #   typer
 shellingham==1.5.4
     # via typer
+typeguard==2.13.3
+    # via pygls
 typer==0.12.3
     # via -r requirements.in
 typing-extensions==4.14.0
-    # via typer
+    # via
+    #   cattrs
+    #   pydantic
+    #   typer
 wheel==0.45.1
     # via pip-tools
 
