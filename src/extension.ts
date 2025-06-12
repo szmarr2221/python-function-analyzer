@@ -12,10 +12,10 @@ import { checkIfConfigurationChanged, getInterpreterFromSetting } from './common
 import { loadServerDefaults } from './common/setup';
 import { getLSClientTraceLevel } from './common/utilities';
 import { createOutputChannel, onDidChangeConfiguration, registerCommand } from './common/vscodeapi';
-
 import * as path from 'path';
 
 let lsClient: LanguageClient | undefined;
+let commandRegistered = false;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const serverInfo = loadServerDefaults();
@@ -70,11 +70,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             return;
         }
 
-        const serverModule = context.asAbsolutePath(path.join('bundled', 'tool', 'lsp_runner.py'));
+        const pythonExecutable = path.join(context.extensionPath, '.venv', 'Scripts', 'python.exe');
+        const serverModule = context.asAbsolutePath(path.join('bundled', 'tool', 'lsp_server.py'));
 
         const serverOptions: ServerOptions = {
-            command: pythonPath,
-            args: ['lsp_server.py'],
+            command: pythonExecutable,
+            args: [serverModule],
             options: { cwd: context.extensionPath },
         };
 
@@ -143,6 +144,36 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
     );
 
+    if (!commandRegistered) {
+        context.subscriptions.push(
+            vscode.commands.registerCommand('functionAnalyzer.scanFunctions', async () => {
+                const folder = await getSelectedFolder();
+                if (!folder) {
+                    vscode.window.showWarningMessage('No folder selected.');
+                    return;
+                }
+
+                if (!lsClient) {
+                    vscode.window.showErrorMessage('Language Server is not running.');
+                    return;
+                }
+
+                const result = await lsClient!.sendRequest('workspace/executeCommand', {
+                    command: 'functionAnalyzer.scanFunctions',
+                    arguments: [folder],
+                });
+
+                if (result && typeof result === 'object') {
+                    const summary = Object.entries(result)
+                        .map(([file, count]) => `${file}: ${count}`)
+                        .join('\n');
+                    vscode.window.showInformationMessage(`Scan result:\n${summary}`);
+                }
+            }),
+        );
+        commandRegistered = true;
+    }
+
     setImmediate(async () => {
         const interpreter = getInterpreterFromSetting(serverId);
         if (!interpreter || interpreter.length === 0) {
@@ -153,6 +184,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             await runServer();
         }
     });
+}
+
+export async function deactivate(): Promise<void> {
+    if (lsClient) {
+        await lsClient.stop();
+    }
 }
 
 function getWebviewContent(data: Record<string, number>): string {
@@ -202,8 +239,7 @@ function getWebviewContent(data: Record<string, number>): string {
     `;
 }
 
-export async function deactivate(): Promise<void> {
-    if (lsClient) {
-        await lsClient.stop();
-    }
+async function getSelectedFolder(): Promise<string | undefined> {
+    const folders = vscode.workspace.workspaceFolders;
+    return folders && folders.length > 0 ? folders[0].uri.fsPath : undefined;
 }

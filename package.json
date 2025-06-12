@@ -2,7 +2,7 @@
   "name": "function-analyzer",
   "displayName": "Function Analyzer",
   "description": "Analyzes Python functions in your workspace",
-  "version": "2022.0.0-dev",
+  "version": "2025.0.0",
   "preview": true,
   "publisher": "szmarr2221",
   "license": "MIT",
@@ -23,7 +23,7 @@
     "function-analyzer"
   ],
   "engines": {
-    "vscode": "^1.78.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Programming Languages",
@@ -48,7 +48,7 @@
   "main": "./dist/extension.js",
   "serverInfo": {
     "name": "Function Analyzer",
-    "module": "bundled.tool.lsp_server"
+    "module": "./server/lsp_server.py"
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -120,7 +120,7 @@
             "All notifications are turned off, any errors or warning are still available in the logs.",
             "Notifications are shown only in the case of an error.",
             "Notifications are shown for errors and warnings.",
-            "Notifications are show for anything that the server chooses to show."
+            "Notifications are shown for anything that the server chooses to show."
           ],
           "scope": "machine",
           "type": "string"
