@@ -4,6 +4,8 @@
 #
 #    pip-compile requirements.in
 #
+annotated-types==0.7.0
+    # via pydantic
 attrs==25.3.0
     # via
     #   cattrs
@@ -16,10 +18,6 @@ click==8.2.1
     # via
     #   pip-tools
     #   typer
-colorama==0.4.6
-    # via
-    #   build
-    #   click
 lsprotocol==2023.0.0
     # via
     #   -r requirements.in
@@ -32,8 +30,10 @@ packaging==25.0
     # via build
 pip-tools==7.4.1
     # via -r requirements.in
-pydantic==1.10.13
+pydantic==2.11.6
     # via -r requirements.in
+pydantic-core==2.33.2
+    # via pydantic
 pygls==1.2.1
     # via -r requirements.in
 pygments==2.19.1
@@ -54,7 +54,11 @@ typing-extensions==4.14.0
     # via
     #   cattrs
     #   pydantic
+    #   pydantic-core
     #   typer
+    #   typing-inspection
+typing-inspection==0.4.1
+    # via pydantic
 wheel==0.45.1
     # via pip-tools
 
