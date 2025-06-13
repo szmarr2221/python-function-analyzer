@@ -15,7 +15,6 @@ import { createOutputChannel, onDidChangeConfiguration, registerCommand } from '
 import * as path from 'path';
 
 let lsClient: LanguageClient | undefined;
-let commandRegistered = false;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const serverInfo = loadServerDefaults();
@@ -144,36 +143,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
     );
 
-    if (!commandRegistered) {
-        context.subscriptions.push(
-            vscode.commands.registerCommand('functionAnalyzer.scanFunctions', async () => {
-                const folder = await getSelectedFolder();
-                if (!folder) {
-                    vscode.window.showWarningMessage('No folder selected.');
-                    return;
-                }
-
-                if (!lsClient) {
-                    vscode.window.showErrorMessage('Language Server is not running.');
-                    return;
-                }
-
-                const result = await lsClient!.sendRequest('workspace/executeCommand', {
-                    command: 'functionAnalyzer.scanFunctions',
-                    arguments: [folder],
-                });
-
-                if (result && typeof result === 'object') {
-                    const summary = Object.entries(result)
-                        .map(([file, count]) => `${file}: ${count}`)
-                        .join('\n');
-                    vscode.window.showInformationMessage(`Scan result:\n${summary}`);
-                }
-            }),
-        );
-        commandRegistered = true;
-    }
-
     setImmediate(async () => {
         const interpreter = getInterpreterFromSetting(serverId);
         if (!interpreter || interpreter.length === 0) {
@@ -237,9 +206,4 @@ function getWebviewContent(data: Record<string, number>): string {
     </body>
     </html>
     `;
-}
-
-async function getSelectedFolder(): Promise<string | undefined> {
-    const folders = vscode.workspace.workspaceFolders;
-    return folders && folders.length > 0 ? folders[0].uri.fsPath : undefined;
 }
