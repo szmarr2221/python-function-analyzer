@@ -10,19 +10,30 @@
     },
     "typescript.tsc.autoDetect": "off",
 
-    // ✅ Python settings
+    // ✅ Python interpreter from your .venv
     "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
-    "python.pythonPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
+
+    // ✅ Used by your Function Analyzer extension — should point to the same interpreter
+    "function-analyzer.interpreter": [
+        "${workspaceFolder}\\.venv\\Scripts\\python.exe"
+    ],
+
+    // ❌ Removed deprecated python.pythonPath
+
+    // ✅ For correct Python IntelliSense and types
     "python.analysis.extraPaths": [
-    "${workspaceFolder}\\.venv\\Lib\\site-packages"
+        "${workspaceFolder}\\.venv\\Lib\\site-packages"
     ],
     "python.analysis.autoSearchPaths": true,
     "python.analysis.useLibraryCodeForTypes": true,
+
+    // ✅ Pytest testing config
     "python.testing.pytestArgs": ["src/test/python_tests"],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.cwd": "${workspaceFolder}",
 
+    // ✅ TypeScript formatting settings
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true
