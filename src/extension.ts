@@ -15,11 +15,12 @@ import { createOutputChannel, onDidChangeConfiguration, registerCommand } from '
 import * as path from 'path';
 
 let lsClient: LanguageClient | undefined;
+const EXECUTE_COMMAND = 'workspace/executeCommand';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const serverInfo = loadServerDefaults();
-    const serverName = serverInfo.name;
-    const serverId = serverInfo.module;
+    const serverName = 'Function Analyzer';
+    const serverId = 'functionAnalyzer';
 
     const outputChannel = createOutputChannel(serverName);
     context.subscriptions.push(outputChannel, registerLogger(outputChannel));
@@ -69,11 +70,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             return;
         }
 
-        const pythonExecutable = path.join(context.extensionPath, '.venv', 'Scripts', 'python.exe');
-        const serverModule = context.asAbsolutePath(path.join('bundled', 'tool', 'lsp_server.py'));
+        const serverModule = context.asAbsolutePath(path.join('python', 'tools', 'lsp_server.py'));
 
         const serverOptions: ServerOptions = {
-            command: pythonExecutable,
+            command: pythonPath,
             args: [serverModule],
             options: { cwd: context.extensionPath },
         };
@@ -82,7 +82,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             documentSelector: [{ scheme: 'file', language: 'python' }],
         };
 
-        lsClient = new LanguageClient('functionAnalyzer', 'Function Analyzer LSP', serverOptions, clientOptions);
+        lsClient = new LanguageClient(serverId, serverName, serverOptions, clientOptions);
         await lsClient.start();
     };
 
@@ -95,7 +95,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
         registerCommand(`${serverId}.restart`, runServer),
 
-        registerCommand('functionAnalyzer.triggerScan', async () => {
+        registerCommand('functionAnalyzer.countFunctions', async () => {
             const workspaceFolders = vscode.workspace.workspaceFolders;
             if (!workspaceFolders || workspaceFolders.length === 0) {
                 vscode.window.showErrorMessage('Please open a folder to analyze.');
@@ -104,7 +104,56 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
             const folderPath = workspaceFolders[0].uri.fsPath;
 
-            if (!lsClient) {
+            const client = lsClient;
+            if (!client) {
+                vscode.window.showErrorMessage('Language Server is not running.');
+                return;
+            }
+
+            await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: 'Counting Python functions via LSP...',
+                    cancellable: false,
+                },
+                async () => {
+                    try {
+                        const result = (await client.sendRequest(EXECUTE_COMMAND, {
+                            command: 'functionAnalyzer.countFunctions',
+                            arguments: [folderPath],
+                        })) as Record<string, number> | undefined;
+
+                        if (!result) {
+                            vscode.window.showErrorMessage('Failed to retrieve function count results.');
+                            return;
+                        }
+
+                        const panel = vscode.window.createWebviewPanel(
+                            'functionAnalyzerResults',
+                            'Function Count Results',
+                            vscode.ViewColumn.One,
+                            {},
+                        );
+
+                        panel.webview.html = getWebviewContent(result);
+                    } catch (e: any) {
+                        vscode.window.showErrorMessage(`LSP command failed: ${e.message}`);
+                    }
+                },
+            );
+        }),
+
+        registerCommand('functionAnalyzer.scanFunctions', async () => {
+            const workspaceFolders = vscode.workspace.workspaceFolders;
+            if (!workspaceFolders || workspaceFolders.length === 0) {
+                vscode.window.showErrorMessage('Please open a folder to analyze.');
+                return;
+            }
+
+            const folderPath = workspaceFolders[0].uri.fsPath;
+
+            const client = lsClient;
+            if (!client) {
                 vscode.window.showErrorMessage('Language Server is not running.');
                 return;
             }
@@ -117,26 +166,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 },
                 async () => {
                     try {
-                        const result = (await lsClient!.sendRequest('workspace/executeCommand', {
+                        const result = await client.sendRequest(EXECUTE_COMMAND, {
                             command: 'functionAnalyzer.scanFunctions',
                             arguments: [folderPath],
-                        })) as Record<string, number> | undefined;
+                        });
 
-                        if (!result) {
-                            vscode.window.showErrorMessage('Failed to retrieve function count results.');
-                            return;
-                        }
-
-                        const panel = vscode.window.createWebviewPanel(
-                            'functionAnalyzerResults',
-                            'Function Analysis Results',
-                            vscode.ViewColumn.One,
-                            {},
-                        );
-
-                        panel.webview.html = getWebviewContent(result);
+                        vscode.window.showInformationMessage(`Scan result: ${JSON.stringify(result)}`);
                     } catch (e: any) {
-                        vscode.window.showErrorMessage(`LSP command failed: ${e.message}`);
+                        vscode.window.showErrorMessage(`LSP scan failed: ${e.message}`);
                     }
                 },
             );
@@ -176,7 +213,7 @@ function getWebviewContent(data: Record<string, number>): string {
         folders[folder][fileName] = data[filePath];
     }
 
-    let html = '<h2>Function Count Analysis</h2><ul>';
+    let html = '<h2>Function Count Results</h2><ul>';
 
     for (const folder in folders) {
         html += `<li><strong>${folder}/</strong><ul>`;
@@ -198,7 +235,7 @@ function getWebviewContent(data: Record<string, number>): string {
         <style>
             body { font-family: sans-serif; padding: 1em; }
             ul { list-style: none; padding-left: 1em; }
-            li::before { content: "└─ "; color: #888; }
+            li::before { content: "\u2514\u2500 "; color: #888; }
         </style>
     </head>
     <body>

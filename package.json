@@ -48,7 +48,7 @@
   "main": "./dist/extension.js",
   "serverInfo": {
     "name": "Function Analyzer",
-    "module": "./server/lsp_server.py"
+    "module": "functionAnalyzer"
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
