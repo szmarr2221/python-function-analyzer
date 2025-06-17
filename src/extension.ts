@@ -1,14 +1,8 @@
 import * as vscode from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
 import { registerLogger, traceError, traceLog, traceVerbose } from './common/log/logging';
-import {
-    checkVersion,
-    getInterpreterDetails,
-    initializePython,
-    onDidChangePythonInterpreter,
-    resolveInterpreter,
-} from './common/python';
-import { checkIfConfigurationChanged, getInterpreterFromSetting } from './common/settings';
+import { initializePython, onDidChangePythonInterpreter } from './common/python';
+import { checkIfConfigurationChanged } from './common/settings';
 import { loadServerDefaults } from './common/setup';
 import { getLSClientTraceLevel } from './common/utilities';
 import { createOutputChannel, onDidChangeConfiguration, registerCommand } from './common/vscodeapi';
@@ -44,39 +38,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     traceVerbose(`Full Server Info: ${JSON.stringify(serverInfo)}`);
 
     const runServer = async () => {
-        const interpreter = getInterpreterFromSetting(serverId);
-        let pythonPath: string | undefined;
-
-        if (interpreter && interpreter.length > 0) {
-            pythonPath = interpreter[0];
-            if (checkVersion(await resolveInterpreter(interpreter))) {
-                traceVerbose(`Using interpreter from ${serverInfo.module}.interpreter: ${interpreter.join(' ')}`);
-            }
-        } else {
-            const interpreterDetails = await getInterpreterDetails();
-            if (interpreterDetails.path) {
-                pythonPath = interpreterDetails.path[0];
-                traceVerbose(`Using interpreter from Python extension: ${interpreterDetails.path.join(' ')}`);
-            }
-        }
-
-        if (!pythonPath) {
-            traceError(
-                'Python interpreter missing:\r\n' +
-                    '[Option 1] Select python interpreter using the ms-python.python.\r\n' +
-                    `[Option 2] Set an interpreter using "${serverId}.interpreter" setting.\r\n` +
-                    'Please use Python 3.8 or greater.',
-            );
-            return;
-        }
+        // ✅ HARDCODED PYTHON INTERPRETER
+        const pythonPath = context.asAbsolutePath('.venv/Scripts/python.exe');
         vscode.window.showInformationMessage('Trying to start LSP server with: ' + pythonPath);
 
-        const serverModule = context.asAbsolutePath(path.join('python', 'tools', 'lsp_server.py'));
+        const serverModule = 'C:\\Users\\samar\\python-function-analyzer\\python\\tools\\lsp_server.py';
 
         const serverOptions: ServerOptions = {
             command: pythonPath,
             args: [serverModule],
-            options: { cwd: context.extensionPath },
+            options: { cwd: 'C:\\Users\\samar\\python-function-analyzer' },
         };
 
         const clientOptions: LanguageClientOptions = {
@@ -145,12 +116,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
 
     setImmediate(async () => {
-        const interpreter = getInterpreterFromSetting(serverId);
-        if (!interpreter || interpreter.length === 0) {
-            traceLog(`Python extension loading`);
-            await initializePython(context.subscriptions);
-            traceLog(`Python extension loaded`);
-        }
+        await initializePython(context.subscriptions);
         await runServer();
     });
 }
@@ -198,7 +164,7 @@ function getWebviewContent(data: Record<string, number>): string {
         <style>
             body { font-family: sans-serif; padding: 1em; }
             ul { list-style: none; padding-left: 1em; }
-            li::before { content: "\u2514\u2500 "; color: #888; }
+            li::before { content: "\\2514\\2500 "; color: #888; }
         </style>
     </head>
     <body>

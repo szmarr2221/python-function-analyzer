@@ -1,5 +1,6 @@
-// Place your settings in this file to overwrite default and user settings.
+// .vscode/settings.json
 {
+    // ✅ Hide build output folders
     "files.exclude": {
         "out": false,
         "dist": false
@@ -8,32 +9,32 @@
         "out": true,
         "dist": true
     },
+
+    // ✅ Turn off automatic tsc detection
     "typescript.tsc.autoDetect": "off",
 
-    // ✅ Python interpreter from your .venv
+    // ✅ Use correct Python interpreter from local .venv
     "python.defaultInterpreterPath": "${workspaceFolder}\\.venv\\Scripts\\python.exe",
 
-    // ✅ Used by your Function Analyzer extension — should point to the same interpreter
+    // ✅ This is the interpreter your extension uses to run the LSP server
     "function-analyzer.interpreter": [
         "${workspaceFolder}\\.venv\\Scripts\\python.exe"
     ],
 
-    // ❌ Removed deprecated python.pythonPath
-
-    // ✅ For correct Python IntelliSense and types
+    // ✅ Extra path for IntelliSense to pick up installed packages
     "python.analysis.extraPaths": [
         "${workspaceFolder}\\.venv\\Lib\\site-packages"
     ],
     "python.analysis.autoSearchPaths": true,
     "python.analysis.useLibraryCodeForTypes": true,
 
-    // ✅ Pytest testing config
+    // ✅ Pytest testing config (optional)
     "python.testing.pytestArgs": ["src/test/python_tests"],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.cwd": "${workspaceFolder}",
 
-    // ✅ TypeScript formatting settings
+    // ✅ Format TypeScript with Prettier
     "[typescript]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.formatOnSave": true
