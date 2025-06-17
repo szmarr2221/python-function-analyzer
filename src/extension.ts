@@ -69,6 +69,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             );
             return;
         }
+        vscode.window.showInformationMessage('Trying to start LSP server with: ' + pythonPath);
 
         const serverModule = context.asAbsolutePath(path.join('python', 'tools', 'lsp_server.py'));
 
@@ -141,41 +142,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 },
             );
         }),
-
-        registerCommand('functionAnalyzer.scanFunctions', async () => {
-            const workspaceFolders = vscode.workspace.workspaceFolders;
-            if (!workspaceFolders || workspaceFolders.length === 0) {
-                vscode.window.showErrorMessage('Please open a folder to analyze.');
-                return;
-            }
-
-            const folderPath = workspaceFolders[0].uri.fsPath;
-
-            if (!lsClient) {
-                vscode.window.showErrorMessage('Language Server is not running.');
-                return;
-            }
-
-            await vscode.window.withProgress(
-                {
-                    location: vscode.ProgressLocation.Notification,
-                    title: 'Scanning Python functions via LSP...',
-                    cancellable: false,
-                },
-                async () => {
-                    try {
-                        const result = await lsClient!.sendRequest(EXECUTE_COMMAND, {
-                            command: 'functionAnalyzer.scanFunctions',
-                            arguments: [folderPath],
-                        });
-
-                        vscode.window.showInformationMessage(`Scan result: ${JSON.stringify(result)}`);
-                    } catch (e: any) {
-                        vscode.window.showErrorMessage(`LSP scan failed: ${e.message}`);
-                    }
-                },
-            );
-        }),
     );
 
     setImmediate(async () => {
@@ -232,7 +198,7 @@ function getWebviewContent(data: Record<string, number>): string {
         <style>
             body { font-family: sans-serif; padding: 1em; }
             ul { list-style: none; padding-left: 1em; }
-            li::before { content: "\\2514\\2500 "; color: #888; }
+            li::before { content: "\u2514\u2500 "; color: #888; }
         </style>
     </head>
     <body>

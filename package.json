@@ -42,7 +42,6 @@
   "activationEvents": [
     "onLanguage:python",
     "workspaceContains:*.py",
-    "onCommand:functionAnalyzer.scanFunctions",
     "onCommand:functionAnalyzer.countFunctions"
   ],
   "main": "./dist/extension.js",
@@ -128,10 +127,6 @@
       }
     },
     "commands": [
-      {
-        "title": "Scan Python Functions",
-        "command": "functionAnalyzer.scanFunctions"
-      },
       {
         "title": "Count Python Functions",
         "command": "functionAnalyzer.countFunctions"
