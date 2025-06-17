@@ -16,10 +16,6 @@ click==8.2.1
     # via
     #   pip-tools
     #   typer
-colorama==0.4.6
-    # via
-    #   build
-    #   click
 lsprotocol==2023.0.0b1
     # via
     #   -r requirements.in
@@ -50,7 +46,7 @@ shellingham==1.5.4
     # via typer
 typeguard==3.0.2
     # via pygls
-typer==0.12.3
+typer==0.16.0
     # via -r requirements.in
 typing-extensions==4.14.0
     # via
