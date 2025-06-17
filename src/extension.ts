@@ -104,8 +104,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
             const folderPath = workspaceFolders[0].uri.fsPath;
 
-            const client = lsClient;
-            if (!client) {
+            if (!lsClient) {
                 vscode.window.showErrorMessage('Language Server is not running.');
                 return;
             }
@@ -118,7 +117,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 },
                 async () => {
                     try {
-                        const result = (await client.sendRequest(EXECUTE_COMMAND, {
+                        const result = (await lsClient!.sendRequest(EXECUTE_COMMAND, {
                             command: 'functionAnalyzer.countFunctions',
                             arguments: [folderPath],
                         })) as Record<string, number> | undefined;
@@ -152,8 +151,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
             const folderPath = workspaceFolders[0].uri.fsPath;
 
-            const client = lsClient;
-            if (!client) {
+            if (!lsClient) {
                 vscode.window.showErrorMessage('Language Server is not running.');
                 return;
             }
@@ -166,7 +164,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 },
                 async () => {
                     try {
-                        const result = await client.sendRequest(EXECUTE_COMMAND, {
+                        const result = await lsClient!.sendRequest(EXECUTE_COMMAND, {
                             command: 'functionAnalyzer.scanFunctions',
                             arguments: [folderPath],
                         });
@@ -186,9 +184,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             traceLog(`Python extension loading`);
             await initializePython(context.subscriptions);
             traceLog(`Python extension loaded`);
-        } else {
-            await runServer();
         }
+        await runServer();
     });
 }
 
@@ -235,7 +232,7 @@ function getWebviewContent(data: Record<string, number>): string {
         <style>
             body { font-family: sans-serif; padding: 1em; }
             ul { list-style: none; padding-left: 1em; }
-            li::before { content: "\u2514\u2500 "; color: #888; }
+            li::before { content: "\\2514\\2500 "; color: #888; }
         </style>
     </head>
     <body>
