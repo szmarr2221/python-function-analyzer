@@ -16,10 +16,6 @@ click==8.2.1
     # via
     #   pip-tools
     #   typer
-colorama==0.4.6
-    # via
-    #   build
-    #   click
 lsprotocol==2023.0.0b1
     # via
     #   -r requirements.in
@@ -42,7 +38,7 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-rich==13.7.1
+rich==14.0.0
     # via
     #   -r requirements.in
     #   typer
